@@ -306,19 +306,13 @@
         "tombi.config.format.rules.array-bracket-space-width": {
           "markdownDescription": "```toml\nkey = [ 1, 2, 3 ]\n#      ^       ^  <- this\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 0
         },
         "tombi.config.format.rules.array-comma-space-width": {
           "markdownDescription": "```toml\nkey = [ 1, 2, 3 ]\n#         ^  ^    <- this\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 1
         },
         "tombi.config.format.rules.date-time-delimiter": {
@@ -335,10 +329,7 @@
         "tombi.config.format.rules.group-blank-lines-limit": {
           "markdownDescription": "Consecutive groups remain separate for sorting purposes,\nand existing blank lines between them are preserved up to this limit.\n\n```toml\n# BEFORE\nkey1 = \"value1\"\nkey2 = \"value2\"\n\nkey3 = \"value3\"\n\n\nkey4 = \"value4\"\n\n# AFTER (`group-blank-lines-limit = 1`)\nkey1 = \"value1\"\nkey2 = \"value2\"\n\nkey3 = \"value3\"\n\nkey4 = \"value4\"\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 1
         },
         "tombi.config.format.rules.indent-style": {
@@ -366,28 +357,19 @@
         "tombi.config.format.rules.indent-width": {
           "markdownDescription": "⚠️ **WARNING** ⚠️\\\nThis option is only used when the indentation style is `space`.",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 2
         },
         "tombi.config.format.rules.inline-table-brace-space-width": {
           "markdownDescription": "```toml\nkey = { a = 1, b = 2 }\n#      ^            ^  <- this\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 1
         },
         "tombi.config.format.rules.inline-table-comma-space-width": {
           "markdownDescription": "```toml\nkey = { a = 1, b = 2 }\n#             ^  <- this\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 1
         },
         "tombi.config.format.rules.key-value-equals-sign-alignment": {
@@ -399,10 +381,7 @@
         "tombi.config.format.rules.key-value-equals-sign-space-width": {
           "markdownDescription": "```toml\nkey = \"value\"\n#  ^ ^  <- this\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 1
         },
         "tombi.config.format.rules.line-ending": {
@@ -419,10 +398,7 @@
         "tombi.config.format.rules.line-width": {
           "markdownDescription": "The formatter will try to keep lines within this width.",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 80
         },
         "tombi.config.format.rules.string-quote-style": {
@@ -439,10 +415,7 @@
         "tombi.config.format.rules.table-blank-lines": {
           "markdownDescription": "This applies when the formatter inserts spacing between table or array-of-table blocks.\n\n```toml\n# BEFORE\n[aaa]\nkey1 = \"value1\"\n[bbb]\nkey2 = \"value2\"\n\n# AFTER (`table-blank-lines = 2`)\n[aaa]\nkey1 = \"value1\"\n\n\n[bbb]\nkey2 = \"value2\"\n```\n\nTight parent/child table adjacency is controlled separately, so this does not apply\nwhen a child table follows a parent table that has no key-value pairs.\n\n```toml\n# BEFORE\n[aaa]\n\n[aaa.bbb]\n\n# AFTER\n[aaa]\n[aaa.bbb]\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 1
         },
         "tombi.config.format.rules.trailing-comment-alignment": {
@@ -454,10 +427,7 @@
         "tombi.config.format.rules.trailing-comment-space-width": {
           "markdownDescription": "```toml\nkey = \"value\"  # trailing comment\n#            ^^  <- this\n```",
           "scope": "resource",
-          "type": [
-            "integer",
-            "null"
-          ],
+          "type": "integer",
           "default": 2
         },
         "tombi.config.lint.rules.dotted-keys-out-of-order": {
