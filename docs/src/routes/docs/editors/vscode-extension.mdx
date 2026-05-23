@@ -34,6 +34,28 @@ You can set offline mode in the VSCode settings file.
 }
 ```
 
+## Editor Config (between local config and defaults)
+
+You can provide Tombi config directly from VSCode settings via `tombi.config`.
+This object accepts the same fields as `tombi.toml` (for example `toml-version`, `schema`, `extensions`, ...).
+
+Priority is:
+
+1. nearest project config file (`tombi.toml`, `.tombi.toml`, `pyproject.toml`)
+2. `tombi.config` from VSCode settings
+3. built-in default config
+
+```json
+{
+  "tombi.config": {
+    "toml-version": "v1.1.0",
+    "schema": {
+      "enabled": true
+    }
+  }
+}
+```
+
 ## Verbose Logging
 You can enable verbose logging in the VSCode settings file.
 
