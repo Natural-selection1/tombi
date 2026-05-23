@@ -260,7 +260,8 @@
           "type": [
             "object",
             "null"
-          ]
+          ],
+          "default": null
         },
         "tombi.config.extensions.tombi-toml/pyproject": {
           "markdownDescription": "Configure built-in support for `pyproject.toml`.",
@@ -268,7 +269,8 @@
           "type": [
             "object",
             "null"
-          ]
+          ],
+          "default": null
         },
         "tombi.config.extensions.tombi-toml/tombi": {
           "markdownDescription": "Configure built-in support for `tombi.toml`.",
@@ -276,7 +278,8 @@
           "type": [
             "object",
             "null"
-          ]
+          ],
+          "default": null
         },
         "tombi.config.files.exclude": {
           "markdownDescription": "The file match pattern to exclude from formatting and linting.\nSupports glob pattern.",
@@ -284,7 +287,8 @@
           "type": [
             "array",
             "null"
-          ]
+          ],
+          "default": null
         },
         "tombi.config.files.include": {
           "markdownDescription": "The file match pattern to include in formatting and linting.\nSupports glob pattern.",
@@ -535,7 +539,8 @@
           "type": [
             "array",
             "null"
-          ]
+          ],
+          "default": null
         },
         "tombi.config.schema.catalog.paths": {
           "markdownDescription": "The catalog is evaluated after the schemas specified by [[schemas]].\\\nSchemas are loaded in order from the beginning of the catalog list.",
@@ -567,7 +572,8 @@
           "type": [
             "array",
             "null"
-          ]
+          ],
+          "default": null
         },
         "tombi.config.toml-version": {
           "markdownDescription": "TOML version to use if not specified in the schema and comment directive.",
