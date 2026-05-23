@@ -45,6 +45,7 @@ pub async fn get_diagnostics_result(
         config,
         schema_store,
         config_path,
+        ..
     } = backend
         .config_manager
         .config_schema_store_for_uri(text_document_uri)

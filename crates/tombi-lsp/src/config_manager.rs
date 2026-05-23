@@ -18,14 +18,25 @@ pub enum DefaultConfigSource {
 #[derive(Debug, Clone)]
 pub struct ConfigSchemaStore {
     pub config: Config,
+    pub source_config: Config,
     pub config_path: Option<PathBuf>,
     pub schema_store: SchemaStore,
 }
 
 impl ConfigSchemaStore {
     pub fn new(config: Config, config_path: Option<PathBuf>, schema_store: SchemaStore) -> Self {
+        Self::new_with_source(config.clone(), config, config_path, schema_store)
+    }
+
+    pub fn new_with_source(
+        config: Config,
+        source_config: Config,
+        config_path: Option<PathBuf>,
+        schema_store: SchemaStore,
+    ) -> Self {
         Self {
             config,
+            source_config,
             config_path,
             schema_store,
         }
@@ -123,11 +134,14 @@ impl ConfigManager {
             Some(config_path) => config_path.to_owned(),
             None => {
                 let text_document_path_buf: PathBuf = text_document_path.to_path_buf();
-                if let Ok((config, Some(config_path_buf))) = serde_tombi::config::load_with_path(
-                    text_document_path_buf.parent().map(ToOwned::to_owned),
-                ) {
+                if let Ok((source_config, Some(config_path_buf))) =
+                    serde_tombi::config::load_with_path(
+                        text_document_path_buf.parent().map(ToOwned::to_owned),
+                    )
+                {
                     source_config_paths.insert(text_document_path_buf, config_path_buf.clone());
 
+                    let config = self.config_with_editor_defaults(&source_config).await;
                     let schema_options = schema_store_options(&config, &self.backend_options);
                     let mut config_schema_stores = self.config_schema_stores.write().await;
                     let ConfigSchemaStore {
@@ -137,8 +151,9 @@ impl ConfigManager {
                     } = config_schema_stores
                         .entry(config_path_buf.clone())
                         .or_insert_with(|| {
-                            ConfigSchemaStore::new(
+                            ConfigSchemaStore::new_with_source(
                                 config,
+                                source_config,
                                 Some(config_path_buf.clone()),
                                 SchemaStore::new_with_options(schema_options),
                             )
@@ -177,16 +192,18 @@ impl ConfigManager {
     /// Update a specific config and its path
     pub async fn update_config_with_path(
         &self,
-        config: Config,
+        source_config: Config,
         config_path: &Path,
     ) -> Result<(), tombi_schema_store::Error> {
+        let config = self.config_with_editor_defaults(&source_config).await;
         let schema_options = schema_store_options(&config, &self.backend_options);
 
         let mut config_schema_stores = self.config_schema_stores.write().await;
         let config_schema_store = config_schema_stores
             .entry(config_path.to_owned())
-            .or_insert(ConfigSchemaStore::new(
+            .or_insert(ConfigSchemaStore::new_with_source(
                 config.clone(),
+                source_config.clone(),
                 Some(config_path.to_owned()),
                 SchemaStore::new_with_options(schema_options),
             ));
@@ -195,6 +212,7 @@ impl ConfigManager {
             .reload_config(&config, Some(config_path))
             .await?;
         config_schema_store.config = config;
+        config_schema_store.source_config = source_config;
         Ok(())
     }
 
@@ -356,20 +374,48 @@ impl ConfigManager {
 
     /// Update editor configuration
     pub async fn update_editor_config(&self, config: Config) {
+        let editor_config = config;
         let associated_schemas = self.associated_schemas.read().await;
-        let schema_options = schema_store_options(&config, &self.backend_options);
+        let schema_options = schema_store_options(&editor_config, &self.backend_options);
         let schema_store = SchemaStore::new_with_options(schema_options);
 
-        if let Err(err) =
-            load_schema_store_with_associations(&schema_store, &config, None, &associated_schemas)
-                .await
+        if let Err(err) = load_schema_store_with_associations(
+            &schema_store,
+            &editor_config,
+            None,
+            &associated_schemas,
+        )
+        .await
         {
             log::error!("Failed to load editor config schema store: {err}");
         }
 
-        let config_schema_store = ConfigSchemaStore::new(config, None, schema_store);
+        let config_schema_store = ConfigSchemaStore::new(editor_config.clone(), None, schema_store);
         let mut default_config_schema_store = self.default_config_schema_store.write().await;
         *default_config_schema_store = Some((DefaultConfigSource::Editor, config_schema_store));
+        drop(default_config_schema_store);
+
+        let mut config_schema_stores = self.config_schema_stores.write().await;
+        for (config_path, config_schema_store) in config_schema_stores.iter_mut() {
+            let source_config = config_schema_store.source_config.clone();
+            let config = config_with_default_config(&source_config, &editor_config);
+            let schema_options = schema_store_options(&config, &self.backend_options);
+            let schema_store = SchemaStore::new_with_options(schema_options);
+
+            if let Err(err) = load_schema_store_with_associations(
+                &schema_store,
+                &config,
+                Some(config_path),
+                &associated_schemas,
+            )
+            .await
+            {
+                log::error!("Failed to load merged editor config schema store: {err}");
+            }
+
+            config_schema_store.config = config;
+            config_schema_store.schema_store = schema_store;
+        }
     }
 
     /// Get editor configuration
@@ -379,6 +425,16 @@ impl ConfigManager {
             (*source, config_schema_store.config.clone())
         } else {
             (DefaultConfigSource::Default, Config::default())
+        }
+    }
+
+    async fn config_with_editor_defaults(&self, config: &Config) -> Config {
+        let default_config_schema_store = self.default_config_schema_store.read().await;
+        match &*default_config_schema_store {
+            Some((DefaultConfigSource::Editor, default_config_schema_store)) => {
+                config_with_default_config(config, &default_config_schema_store.config)
+            }
+            _ => config.clone(),
         }
     }
 
@@ -461,6 +517,46 @@ fn schema_store_options(
     }
 }
 
+fn config_with_default_config(config: &Config, default_config: &Config) -> Config {
+    let Ok(mut merged) = serde_json::to_value(default_config) else {
+        return config.clone();
+    };
+    let Ok(overlay) = serde_json::to_value(config) else {
+        return config.clone();
+    };
+
+    merge_json_value(&mut merged, overlay);
+
+    match serde_json::from_value(merged) {
+        Ok(config) => config,
+        Err(err) => {
+            log::error!("Failed to merge editor config defaults: {err}");
+            config.clone()
+        }
+    }
+}
+
+fn merge_json_value(base: &mut serde_json::Value, overlay: serde_json::Value) {
+    if overlay.is_null() {
+        return;
+    }
+
+    match (base, overlay) {
+        (serde_json::Value::Object(base), serde_json::Value::Object(overlay)) => {
+            for (key, value) in overlay {
+                if let Some(base_value) = base.get_mut(&key) {
+                    merge_json_value(base_value, value);
+                } else if !value.is_null() {
+                    base.insert(key, value);
+                }
+            }
+        }
+        (base, overlay) => {
+            *base = overlay;
+        }
+    }
+}
+
 fn merge_schema(
     existing_schema: &mut tombi_schema_store::Schema,
     new_schema: tombi_schema_store::Schema,
@@ -483,5 +579,65 @@ fn merge_schema(
                 existing_exclude.push(pattern);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_with_default_config_uses_editor_values_for_missing_local_fields() {
+        let editor_config: Config = serde_json::from_value(serde_json::json!({
+            "toml-version": "v1.1.0",
+            "format": {
+                "rules": {
+                    "indent-width": 4,
+                    "line-width": 120
+                }
+            }
+        }))
+        .expect("editor config should deserialize");
+        let local_config: Config = serde_json::from_value(serde_json::json!({
+            "toml-version": "v1.0.0",
+            "format": {
+                "rules": {}
+            }
+        }))
+        .expect("local config should deserialize");
+
+        let merged = config_with_default_config(&local_config, &editor_config);
+        assert_eq!(merged.toml_version, Some(TomlVersion::V1_0_0));
+        let rules = merged.format.unwrap().rules.unwrap();
+
+        assert_eq!(rules.indent_width.unwrap().value(), 4);
+        assert_eq!(rules.line_width.unwrap().value(), 120);
+    }
+
+    #[test]
+    fn config_with_default_config_keeps_local_values_over_editor_values() {
+        let editor_config: Config = serde_json::from_value(serde_json::json!({
+            "format": {
+                "rules": {
+                    "indent-width": 4,
+                    "line-width": 120
+                }
+            }
+        }))
+        .expect("editor config should deserialize");
+        let local_config: Config = serde_json::from_value(serde_json::json!({
+            "format": {
+                "rules": {
+                    "line-width": 80
+                }
+            }
+        }))
+        .expect("local config should deserialize");
+
+        let merged = config_with_default_config(&local_config, &editor_config);
+        let rules = merged.format.unwrap().rules.unwrap();
+
+        assert_eq!(rules.indent_width.unwrap().value(), 4);
+        assert_eq!(rules.line_width.unwrap().value(), 80);
     }
 }
