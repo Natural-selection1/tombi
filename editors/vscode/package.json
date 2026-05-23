@@ -245,15 +245,6 @@
           },
           "additionalProperties": false
         },
-        "tombi.config": {
-          "markdownDescription": "Editor-level Tombi configuration equivalent to `tombi.toml` fields. Priority: lower than nearest project config file, higher than global default config.",
-          "type": [
-            "object",
-            "null"
-          ],
-          "scope": "resource",
-          "default": null
-        },
         "tombi.config.extensions.tombi-toml/cargo": {
           "markdownDescription": "Configure built-in support for `Cargo.toml`.",
           "scope": "resource",
@@ -310,14 +301,14 @@
         "tombi.config.format.rules.array-bracket-space-width": {
           "markdownDescription": "```toml\nkey = [ 1, 2, 3 ]\n#      ^       ^  <- this\n```",
           "scope": "resource",
-          "type": "number",
-          "default": 0
+          "default": 0,
+          "type": "integer"
         },
         "tombi.config.format.rules.array-comma-space-width": {
           "markdownDescription": "```toml\nkey = [ 1, 2, 3 ]\n#         ^  ^    <- this\n```",
           "scope": "resource",
-          "type": "number",
-          "default": 1
+          "default": 1,
+          "type": "integer"
         },
         "tombi.config.format.rules.date-time-delimiter": {
           "markdownDescription": "In accordance with [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339), you can use `T` or space character between date and time.\n\n- `T`: Use `T` between date and time like `2001-01-01T00:00:00`\n- `space`: Use space between date and time like `2001-01-01 00:00:00`\n- `preserve`: Preserve the original delimiter.",

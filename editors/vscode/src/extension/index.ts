@@ -17,8 +17,8 @@ import { Server } from "@/lsp/server";
 import { clientOptions } from "@/options/client-options";
 import { serverOptions } from "@/options/server-options";
 import { registerExtensionSchemas } from "@/tomlValidation";
-import type { Settings } from "./settings";
-export type { Settings };
+import { readSettings, type Settings } from "./settings";
+export { type Settings };
 
 export const EXTENSION_ID = "tombi";
 export const EXTENSION_NAME = "Tombi";
@@ -54,9 +54,10 @@ export class Extension {
   }
 
   static async activate(context: vscode.ExtensionContext): Promise<Extension> {
-    const settings = vscode.workspace.getConfiguration(
-      EXTENSION_ID,
-    ) as Settings;
+    const settings = readSettings(
+      vscode.workspace.getConfiguration(EXTENSION_ID),
+      context.extension.packageJSON,
+    );
 
     const tombiBin = await bootstrap(context, settings);
 
@@ -169,8 +170,11 @@ export class Extension {
   }
 
   private async syncEditorConfig(): Promise<void> {
-    const settings = vscode.workspace.getConfiguration(EXTENSION_ID) as Settings;
-    const config = buildEditorConfigPayload(settings);
+    const settings = readSettings(
+      vscode.workspace.getConfiguration(EXTENSION_ID),
+      this.context.extension.packageJSON,
+    );
+    const config = settings.config;
     if (config === undefined) {
       return;
     }
@@ -367,45 +371,6 @@ export class Extension {
     }
 
     return undefined;
-  }
-}
-
-function buildEditorConfigPayload(
-  settings: Settings,
-): Record<string, unknown> | undefined {
-  const config = { ...(settings.config ?? {}) };
-  const raw = settings as Record<string, unknown>;
-
-  for (const [key, value] of Object.entries(raw)) {
-    if (!key.startsWith("config.") || value === undefined || value === null) {
-      continue;
-    }
-    const segments = key.slice("config.".length).split(".");
-    setNestedValue(config, segments, value);
-  }
-
-  return Object.keys(config).length > 0 ? config : undefined;
-}
-
-function setNestedValue(
-  target: Record<string, unknown>,
-  segments: string[],
-  value: unknown,
-): void {
-  let current: Record<string, unknown> = target;
-  for (const segment of segments.slice(0, -1)) {
-    const next = current[segment];
-    if (typeof next === "object" && next !== null && !Array.isArray(next)) {
-      current = next as Record<string, unknown>;
-    } else {
-      const created: Record<string, unknown> = {};
-      current[segment] = created;
-      current = created;
-    }
-  }
-  const leaf = segments[segments.length - 1];
-  if (leaf) {
-    current[leaf] = value;
   }
 }
 
