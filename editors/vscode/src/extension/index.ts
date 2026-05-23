@@ -17,8 +17,8 @@ import { Server } from "@/lsp/server";
 import { clientOptions } from "@/options/client-options";
 import { serverOptions } from "@/options/server-options";
 import { registerExtensionSchemas } from "@/tomlValidation";
-import type { Settings } from "./settings";
-export type { Settings };
+import { readSettings, type Settings } from "./settings";
+export { type Settings };
 
 export const EXTENSION_ID = "tombi";
 export const EXTENSION_NAME = "Tombi";
@@ -54,9 +54,10 @@ export class Extension {
   }
 
   static async activate(context: vscode.ExtensionContext): Promise<Extension> {
-    const settings = vscode.workspace.getConfiguration(
-      EXTENSION_ID,
-    ) as Settings;
+    const settings = readSettings(
+      vscode.workspace.getConfiguration(EXTENSION_ID),
+      context.extension.packageJSON,
+    );
 
     const tombiBin = await bootstrap(context, settings);
 
@@ -73,6 +74,7 @@ export class Extension {
     await client.start();
 
     const extension = new Extension(context, client, server);
+    await extension.syncEditorConfig();
 
     // Get LSP version
     try {
@@ -152,6 +154,11 @@ export class Extension {
 
   private registerEvents(): void {
     this.context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration(async (event) => {
+        if (event.affectsConfiguration(EXTENSION_ID)) {
+          await this.syncEditorConfig();
+        }
+      }),
       vscode.window.onDidChangeActiveTextEditor(async () => {
         await this.updateStatusBarItem();
       }),
@@ -159,6 +166,21 @@ export class Extension {
         await this.onDidSaveTextDocument(document);
         await this.updateStatusBarItem();
       }),
+    );
+  }
+
+  private async syncEditorConfig(): Promise<void> {
+    const settings = readSettings(
+      vscode.workspace.getConfiguration(EXTENSION_ID),
+      this.context.extension.packageJSON,
+    );
+    const config = settings.config;
+    if (config === undefined) {
+      return;
+    }
+    await this.client.sendNotification(
+      node.DidChangeConfigurationNotification.type,
+      { settings: { [EXTENSION_ID]: config } },
     );
   }
 

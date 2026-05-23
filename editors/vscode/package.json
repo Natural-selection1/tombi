@@ -244,6 +244,338 @@
             }
           },
           "additionalProperties": false
+        },
+        "tombi.config.extensions.tombi-toml/cargo": {
+          "markdownDescription": "Configure built-in support for `Cargo.toml`.",
+          "scope": "resource",
+          "type": [
+            "object",
+            "null"
+          ],
+          "default": null
+        },
+        "tombi.config.extensions.tombi-toml/pyproject": {
+          "markdownDescription": "Configure built-in support for `pyproject.toml`.",
+          "scope": "resource",
+          "type": [
+            "object",
+            "null"
+          ],
+          "default": null
+        },
+        "tombi.config.extensions.tombi-toml/tombi": {
+          "markdownDescription": "Configure built-in support for `tombi.toml`.",
+          "scope": "resource",
+          "type": [
+            "object",
+            "null"
+          ],
+          "default": null
+        },
+        "tombi.config.files.exclude": {
+          "markdownDescription": "The file match pattern to exclude from formatting and linting.\nSupports glob pattern.",
+          "scope": "resource",
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null
+        },
+        "tombi.config.files.include": {
+          "markdownDescription": "The file match pattern to include in formatting and linting.\nSupports glob pattern.",
+          "scope": "resource",
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": [
+            "**/*.toml"
+          ]
+        },
+        "tombi.config.files.respect-ignore-files": {
+          "markdownDescription": "Whether to respect `.ignore`, `.gitignore`, and `.git/info/exclude` while discovering files.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": true
+        },
+        "tombi.config.format.rules.array-bracket-space-width": {
+          "markdownDescription": "```toml\nkey = [ 1, 2, 3 ]\n#      ^       ^  <- this\n```",
+          "scope": "resource",
+          "default": 0,
+          "type": "integer"
+        },
+        "tombi.config.format.rules.array-comma-space-width": {
+          "markdownDescription": "```toml\nkey = [ 1, 2, 3 ]\n#         ^  ^    <- this\n```",
+          "scope": "resource",
+          "default": 1,
+          "type": "integer"
+        },
+        "tombi.config.format.rules.date-time-delimiter": {
+          "markdownDescription": "In accordance with [RFC 3339](https://datatracker.ietf.org/doc/html/rfc3339), you can use `T` or space character between date and time.\n\n- `T`: Use `T` between date and time like `2001-01-01T00:00:00`\n- `space`: Use space between date and time like `2001-01-01 00:00:00`\n- `preserve`: Preserve the original delimiter.",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "T",
+            "space",
+            "preserve"
+          ],
+          "default": "T"
+        },
+        "tombi.config.format.rules.group-blank-lines-limit": {
+          "markdownDescription": "Consecutive groups remain separate for sorting purposes,\nand existing blank lines between them are preserved up to this limit.\n\n```toml\n# BEFORE\nkey1 = \"value1\"\nkey2 = \"value2\"\n\nkey3 = \"value3\"\n\n\nkey4 = \"value4\"\n\n# AFTER (`group-blank-lines-limit = 1`)\nkey1 = \"value1\"\nkey2 = \"value2\"\n\nkey3 = \"value3\"\n\nkey4 = \"value4\"\n```",
+          "scope": "resource",
+          "type": "number",
+          "default": 1
+        },
+        "tombi.config.format.rules.indent-style": {
+          "markdownDescription": "Whether to use spaces or tabs for indentation.\n\n- `space`: Use spaces for indentation.\n- `tab`: Use tabs for indentation.",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "space",
+            "tab"
+          ],
+          "default": "space"
+        },
+        "tombi.config.format.rules.indent-sub-tables": {
+          "markdownDescription": "If `true`, the sub-table will be indented.\n\n```toml\n[table]\n    [table.sub-table]\n    key = \"value\"\n# ^^  <- this\n```",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.format.rules.indent-table-key-value-pairs": {
+          "markdownDescription": "If `true`, the table key-value pairs will be indented.\n\n```toml\n[table]\n    key = \"value\"\n# ^^  <- this\n```",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.format.rules.indent-width": {
+          "markdownDescription": "⚠️ **WARNING** ⚠️\\\nThis option is only used when the indentation style is `space`.",
+          "scope": "resource",
+          "type": "number",
+          "default": 2
+        },
+        "tombi.config.format.rules.inline-table-brace-space-width": {
+          "markdownDescription": "```toml\nkey = { a = 1, b = 2 }\n#      ^            ^  <- this\n```",
+          "scope": "resource",
+          "type": "number",
+          "default": 1
+        },
+        "tombi.config.format.rules.inline-table-comma-space-width": {
+          "markdownDescription": "```toml\nkey = { a = 1, b = 2 }\n#             ^  <- this\n```",
+          "scope": "resource",
+          "type": "number",
+          "default": 1
+        },
+        "tombi.config.format.rules.key-value-equals-sign-alignment": {
+          "markdownDescription": "If `true`, the equals sign in the key-value pairs will be aligned.\n\n⚠️ **WARNING** ⚠️\\\nThis feature does **not** apply to key-value pairs inside single line inline tables.\n\n```toml\n# BEFORE\nkey = \"value1\"\nkey2 = \"value2\"\nkey3.key4 = \"value3\"\n\n# AFTER\nkey       = \"value1\"\nkey2      = \"value2\"\nkey3.key4 = \"value3\"\n```",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.format.rules.key-value-equals-sign-space-width": {
+          "markdownDescription": "```toml\nkey = \"value\"\n#  ^ ^  <- this\n```",
+          "scope": "resource",
+          "type": "number",
+          "default": 1
+        },
+        "tombi.config.format.rules.line-ending": {
+          "markdownDescription": "In TOML, the line ending must be either `LF` or `CRLF`.\n\n- `lf`: Line Feed only (`\\n`), common on Linux and macOS as well as inside git repos.\n- `crlf`: Carriage Return Line Feed (`\\r\\n`), common on Windows.",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "lf",
+            "crlf",
+            "auto"
+          ],
+          "default": "auto"
+        },
+        "tombi.config.format.rules.line-width": {
+          "markdownDescription": "The formatter will try to keep lines within this width.",
+          "scope": "resource",
+          "type": "number",
+          "default": 80
+        },
+        "tombi.config.format.rules.string-quote-style": {
+          "markdownDescription": "Choose which quote style the formatter prefers for basic strings.",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "double",
+            "single",
+            "preserve"
+          ],
+          "default": "double"
+        },
+        "tombi.config.format.rules.table-blank-lines": {
+          "markdownDescription": "This applies when the formatter inserts spacing between table or array-of-table blocks.\n\n```toml\n# BEFORE\n[aaa]\nkey1 = \"value1\"\n[bbb]\nkey2 = \"value2\"\n\n# AFTER (`table-blank-lines = 2`)\n[aaa]\nkey1 = \"value1\"\n\n\n[bbb]\nkey2 = \"value2\"\n```\n\nTight parent/child table adjacency is controlled separately, so this does not apply\nwhen a child table follows a parent table that has no key-value pairs.\n\n```toml\n# BEFORE\n[aaa]\n\n[aaa.bbb]\n\n# AFTER\n[aaa]\n[aaa.bbb]\n```",
+          "scope": "resource",
+          "type": "number",
+          "default": 1
+        },
+        "tombi.config.format.rules.trailing-comment-alignment": {
+          "markdownDescription": "If `true`, the trailing comments in value/key-value pairs will be aligned.\n\n**📝 NOTE 📝**\\\nThe trailing comments of table header are not targeted by alignment.\n\n```toml\n# BEFORE\nkey = \"value1\"  # comment 1\nkey2 = \"value2\"  # comment 2\nkey3.key4 = \"value3\"  # comment 3\n\n# AFTER\nkey = \"value1\"        # comment 1\nkey2 = \"value2\"       # comment 2\nkey3.key4 = \"value3\"  # comment 3\n```",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.format.rules.trailing-comment-space-width": {
+          "markdownDescription": "```toml\nkey = \"value\"  # trailing comment\n#            ^^  <- this\n```",
+          "scope": "resource",
+          "type": "number",
+          "default": 2
+        },
+        "tombi.config.lint.rules.dotted-keys-out-of-order": {
+          "markdownDescription": "Check if dotted keys are defined out of order.\n\n```toml\n# VALID BUT DISCOURAGED\napple.type = \"fruit\"\norange.type = \"fruit\"\napple.skin = \"thin\"\norange.skin = \"thick\"\n\n# RECOMMENDED\napple.type = \"fruit\"\napple.skin = \"thin\"\norange.type = \"fruit\"\norange.skin = \"thick\"\n```",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "off",
+            "warn",
+            "error"
+          ],
+          "default": "warn"
+        },
+        "tombi.config.lint.rules.key-empty": {
+          "markdownDescription": "Check if the key is empty.\n\n```toml\n# VALID BUT DISCOURAGED\n\"\" = true\n```",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "off",
+            "warn",
+            "error"
+          ],
+          "default": "warn"
+        },
+        "tombi.config.lint.rules.tables-out-of-order": {
+          "markdownDescription": "Check if tables are defined out of order.\n\n```toml\n# VALID BUT DISCOURAGED\n[fruit.apple]\n[animal]\n[fruit.orange]\n\n# RECOMMENDED\n[fruit.apple]\n[fruit.orange]\n[animal]\n```",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "off",
+            "warn",
+            "error"
+          ],
+          "default": "warn"
+        },
+        "tombi.config.lsp.code-action.enabled": {
+          "markdownDescription": "Whether to enable code action.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.completion.enabled": {
+          "markdownDescription": "Whether to enable completion.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.diagnostic.enabled": {
+          "markdownDescription": "Whether to enable diagnostic.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.document-link.enabled": {
+          "markdownDescription": "Whether to enable document link.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.formatting.enabled": {
+          "markdownDescription": "Whether to enable formatting.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.goto-declaration.enabled": {
+          "markdownDescription": "Whether to enable goto definition.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.goto-definition.enabled": {
+          "markdownDescription": "Whether to enable goto definition.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.goto-type-definition.enabled": {
+          "markdownDescription": "Whether to enable goto definition.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.hover.enabled": {
+          "markdownDescription": "Whether to enable hover.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.references.enabled": {
+          "markdownDescription": "Whether to enable references.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.lsp.workspace-diagnostic.enabled": {
+          "markdownDescription": "Whether to enable workspace diagnostic.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.overrides": {
+          "markdownDescription": "Override config items",
+          "scope": "resource",
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null
+        },
+        "tombi.config.schema.catalog.paths": {
+          "markdownDescription": "The catalog is evaluated after the schemas specified by [[schemas]].\\\nSchemas are loaded in order from the beginning of the catalog list.",
+          "scope": "resource",
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": [
+            "tombi://www.schemastore.org/api/json/catalog.json",
+            "https://www.schemastore.org/api/json/catalog.json"
+          ]
+        },
+        "tombi.config.schema.enabled": {
+          "markdownDescription": "Enable the schema validation",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.schema.strict": {
+          "markdownDescription": "If `additionalProperties` is not specified in the JSON Schema,\nthe strict mode treats it as `additionalProperties: false`,\nwhich is different from the JSON Schema specification.",
+          "scope": "resource",
+          "type": "boolean",
+          "default": false
+        },
+        "tombi.config.schemas": {
+          "markdownDescription": "Schema items",
+          "scope": "resource",
+          "type": [
+            "array",
+            "null"
+          ],
+          "default": null
+        },
+        "tombi.config.toml-version": {
+          "markdownDescription": "TOML version to use if not specified in the schema and comment directive.",
+          "scope": "resource",
+          "type": "string",
+          "enum": [
+            "v1.0.0",
+            "v1.1.0",
+            "v1.1.0-preview"
+          ],
+          "default": "v1.0.0"
         }
       }
     },
