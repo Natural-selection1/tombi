@@ -73,6 +73,7 @@ export class Extension {
     await client.start();
 
     const extension = new Extension(context, client, server);
+    await extension.syncEditorConfig();
 
     // Get LSP version
     try {
@@ -152,6 +153,11 @@ export class Extension {
 
   private registerEvents(): void {
     this.context.subscriptions.push(
+      vscode.workspace.onDidChangeConfiguration(async (event) => {
+        if (event.affectsConfiguration(EXTENSION_ID)) {
+          await this.syncEditorConfig();
+        }
+      }),
       vscode.window.onDidChangeActiveTextEditor(async () => {
         await this.updateStatusBarItem();
       }),
@@ -159,6 +165,18 @@ export class Extension {
         await this.onDidSaveTextDocument(document);
         await this.updateStatusBarItem();
       }),
+    );
+  }
+
+  private async syncEditorConfig(): Promise<void> {
+    const settings = vscode.workspace.getConfiguration(EXTENSION_ID) as Settings;
+    const config = buildEditorConfigPayload(settings);
+    if (config === undefined) {
+      return;
+    }
+    await this.client.sendNotification(
+      node.DidChangeConfigurationNotification.type,
+      { settings: { [EXTENSION_ID]: config } },
     );
   }
 
@@ -349,6 +367,45 @@ export class Extension {
     }
 
     return undefined;
+  }
+}
+
+function buildEditorConfigPayload(
+  settings: Settings,
+): Record<string, unknown> | undefined {
+  const config = { ...(settings.config ?? {}) };
+  const raw = settings as Record<string, unknown>;
+
+  for (const [key, value] of Object.entries(raw)) {
+    if (!key.startsWith("config.") || value === undefined || value === null) {
+      continue;
+    }
+    const segments = key.slice("config.".length).split(".");
+    setNestedValue(config, segments, value);
+  }
+
+  return Object.keys(config).length > 0 ? config : undefined;
+}
+
+function setNestedValue(
+  target: Record<string, unknown>,
+  segments: string[],
+  value: unknown,
+): void {
+  let current: Record<string, unknown> = target;
+  for (const segment of segments.slice(0, -1)) {
+    const next = current[segment];
+    if (typeof next === "object" && next !== null && !Array.isArray(next)) {
+      current = next as Record<string, unknown>;
+    } else {
+      const created: Record<string, unknown> = {};
+      current[segment] = created;
+      current = created;
+    }
+  }
+  const leaf = segments[segments.length - 1];
+  if (leaf) {
+    current[leaf] = value;
   }
 }
 
